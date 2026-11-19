@@ -13,7 +13,7 @@
 body{margin:0;background:var(--bg);color:var(--txt);font:16px -apple-system,system-ui,sans-serif;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
 header{display:flex;justify-content:space-between;align-items:center;padding:14px 16px 6px}
 h1{font-size:22px;margin:0}.ver{font-size:12px;color:var(--mut)}
-#th{border:0;background:var(--chip);color:var(--txt);border-radius:16px;padding:6px 12px;font-size:13px;margin-left:10px}
+#th,#wk{border:0;background:var(--chip);color:var(--txt);border-radius:16px;padding:6px 12px;font-size:13px;margin-left:10px}
 nav{display:flex;gap:8px;overflow-x:auto;padding:8px 16px;scrollbar-width:none}
 nav::-webkit-scrollbar{display:none}
 nav button{flex:none;border:0;border-radius:20px;padding:8px 14px;background:var(--card);color:var(--mut);font-size:14px}
@@ -32,7 +32,7 @@ video{width:100%;border-radius:10px;margin-top:14px;background:#000}
 .arrow{font-size:80px;text-align:center;transition:transform .1s;margin-top:10px}
 ul{padding-left:18px;line-height:1.6;font-size:14px}
 </style></head><body>
-<header><h1>📡 Sensori</h1><span><span class="ver">v1.4</span><button id="th">🎨</button></span></header>
+<header><h1>📡 Sensori</h1><span><span class="ver">v1.5</span><button id="wk">🔆</button><button id="th">🎨</button></span></header>
 <nav id="nav"></nav>
 <div class="card" id="card"></div>
 <script>
@@ -52,6 +52,13 @@ let ti=+ls('th')||0;
 function applyTheme(){const t=TH[ti%TH.length];for(const k of['bg','card','txt','mut','acc','chip','on'])document.documentElement.style.setProperty('--'+k,t[k]);document.querySelector('meta[name=theme-color]').content=t.bg;$('#th').textContent='🎨 '+t.n;ls('th',ti%TH.length)}
 $('#th').onclick=()=>{ti=(ti+1)%TH.length;applyTheme()};applyTheme();
 
+/* schermo sempre acceso */
+let wl=null,wlOn=ls('wl')!=='0',running=false;
+async function wake(){try{if(wlOn&&running&&'wakeLock' in navigator&&!wl){wl=await navigator.wakeLock.request('screen');wl.addEventListener('release',()=>{wl=null})}}catch(e){wl=null}}
+function unwake(){try{wl&&wl.release()}catch(e){}wl=null}
+function renderWk(){$('#wk').textContent=wlOn?'🔆 Sì':'🔅 No'}
+$('#wk').onclick=()=>{wlOn=!wlOn;ls('wl',wlOn?'1':'0');renderWk();if(wlOn)wake();else unwake()};renderWk();
+document.addEventListener('visibilitychange',()=>{if(document.visibilityState==='visible')wake()});
 /* permessi e helper */
 async function permMotion(){if(typeof DeviceMotionEvent!=='undefined'&&DeviceMotionEvent.requestPermission){if(await DeviceMotionEvent.requestPermission()!=='granted')throw new Error('Permesso negato (Impostazioni › Safari › Movimento e orientamento)')}}
 async function permOri(){if(typeof DeviceOrientationEvent!=='undefined'&&DeviceOrientationEvent.requestPermission){if(await DeviceOrientationEvent.requestPermission()!=='granted')throw new Error('Permesso negato')}}
@@ -195,7 +202,7 @@ S.forEach((s,i)=>{const b=document.createElement('button');b.textContent=s.n;b.o
 
 function sel(i){
  if(stopFn){try{stopFn()}catch(e){}stopFn=null}
- buf=[];[...nav.children].forEach((b,j)=>b.classList.toggle('on',j===i));
+ running=false;unwake();buf=[];[...nav.children].forEach((b,j)=>b.classList.toggle('on',j===i));
  const s=S[i],c=$('#card');
  c.innerHTML='<p class="desc"></p>';c.firstChild.textContent=s.d;
  if(s.static){c.insertAdjacentHTML('beforeend',s.static);return}
@@ -215,10 +222,10 @@ function sel(i){
  if(s.init)s.init(u);
  let on=false;
  btn.onclick=async()=>{
-  if(on){if(stopFn){try{stopFn()}catch(e){}stopFn=null}on=false;btn.textContent='Avvia';btn.classList.remove('stop');return}
+  if(on){if(stopFn){try{stopFn()}catch(e){}stopFn=null}on=false;running=false;unwake();btn.textContent='Avvia';btn.classList.remove('stop');return}
   er.textContent='';buf=[];
-  try{const p=s.go(u);btn.textContent='Ferma';btn.classList.add('stop');on=true;stopFn=await p}
-  catch(e){er.textContent=e.message||String(e);on=false;btn.textContent='Avvia';btn.classList.remove('stop')}
+  try{const p=s.go(u);btn.textContent='Ferma';btn.classList.add('stop');on=true;running=true;wake();stopFn=await p}
+  catch(e){er.textContent=e.message||String(e);on=false;running=false;unwake();btn.textContent='Avvia';btn.classList.remove('stop')}
  };
 }
 sel(0);
