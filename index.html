@@ -35,10 +35,11 @@ video{width:100%;border-radius:10px;margin-top:14px;background:#000}
 .arrow{font-size:80px;text-align:center;transition:transform .1s;margin-top:10px}
 ul{padding-left:18px;line-height:1.6;font-size:14px}
 .btn2.sel{background:var(--acc);color:var(--on);font-weight:600}
-html.flip body{position:fixed;left:0;right:0;top:0;bottom:0;overflow:auto;transform:rotate(180deg)}
+html.flip{overflow:hidden;height:100%}
+html.flip body{-webkit-overflow-scrolling:touch;position:fixed;left:0;right:0;top:0;bottom:0;overflow:auto;transform:rotate(180deg)}
 @media (orientation:landscape){body{padding-left:env(safe-area-inset-left);padding-right:env(safe-area-inset-right)}.vals{grid-template-columns:repeat(4,minmax(0,1fr))}.mixbox{display:grid;grid-template-columns:1fr 1fr;gap:0 24px}canvas{height:90px}header{padding:8px 16px 4px}}
 </style></head><body>
-<header><h1>📡 Sensori</h1><span><span class="ver">v1.15.1</span><button id="wk">🔆</button><button id="fl">↻ Capovolgi</button><button id="th">🎨</button></span></header>
+<header><h1>📡 Sensori</h1><span><span class="ver">v1.15.2</span><button id="wk">🔆</button><button id="fl">↻ Capovolgi</button><button id="th">🎨</button></span></header>
 <nav id="cats"></nav>
 <nav id="nav"></nav>
 <div class="card" id="card"></div>
