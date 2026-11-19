@@ -8,64 +8,119 @@
 <meta name="theme-color" content="#0f172a">
 <title>Sensori</title>
 <style>
+:root{--bg:#0f172a;--card:#1e293b;--txt:#e2e8f0;--mut:#94a3b8;--acc:#38bdf8;--chip:#334155;--on:#0f172a}
 *{box-sizing:border-box;-webkit-tap-highlight-color:transparent}
-body{margin:0;background:#0f172a;color:#e2e8f0;font:16px -apple-system,system-ui,sans-serif;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
-header{display:flex;justify-content:space-between;align-items:baseline;padding:14px 16px 6px}
-h1{font-size:22px;margin:0}.ver{font-size:12px;color:#64748b}
+body{margin:0;background:var(--bg);color:var(--txt);font:16px -apple-system,system-ui,sans-serif;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)}
+header{display:flex;justify-content:space-between;align-items:center;padding:14px 16px 6px}
+h1{font-size:22px;margin:0}.ver{font-size:12px;color:var(--mut)}
+#th{border:0;background:var(--chip);color:var(--txt);border-radius:16px;padding:6px 12px;font-size:13px;margin-left:10px}
 nav{display:flex;gap:8px;overflow-x:auto;padding:8px 16px;scrollbar-width:none}
 nav::-webkit-scrollbar{display:none}
-nav button{flex:none;border:0;border-radius:20px;padding:8px 14px;background:#1e293b;color:#cbd5e1;font-size:14px}
-nav button.on{background:#38bdf8;color:#0f172a;font-weight:600}
-.card{margin:8px 16px 24px;background:#1e293b;border-radius:16px;padding:16px}
-.desc{font-size:14px;line-height:1.45;color:#94a3b8;margin:0 0 14px}
-.btn{width:100%;border:0;border-radius:12px;padding:13px;font-size:16px;font-weight:600;background:#38bdf8;color:#0f172a}
-.btn.stop{background:#f87171}
+nav button{flex:none;border:0;border-radius:20px;padding:8px 14px;background:var(--card);color:var(--mut);font-size:14px}
+nav button.on{background:var(--acc);color:var(--on);font-weight:600}
+.card{margin:8px 16px 24px;background:var(--card);border-radius:16px;padding:16px}
+.desc{font-size:14px;line-height:1.45;color:var(--mut);margin:0 0 14px}
+.btn{width:100%;border:0;border-radius:12px;padding:13px;font-size:16px;font-weight:600;background:var(--acc);color:var(--on)}
+.btn.stop{background:#f87171;color:#fff}
+.btn2{margin:10px 8px 0 0;border:0;border-radius:10px;padding:9px 14px;font-size:14px;background:var(--chip);color:var(--txt)}
 .vals{margin:14px 0 0;display:grid;grid-template-columns:1fr auto;gap:6px 12px;font-variant-numeric:tabular-nums}
-.vals span:nth-child(odd){color:#94a3b8}.vals span:nth-child(even){text-align:right;font-weight:600}
-canvas{width:100%;height:140px;background:#0f172a;border-radius:10px;margin-top:14px;display:block}
+.vals span:nth-child(odd){color:var(--mut)}.vals span:nth-child(even){text-align:right;font-weight:600}
+canvas{width:100%;height:140px;background:var(--bg);border-radius:10px;margin-top:14px;display:block}
 .err{color:#f87171;font-size:14px;margin-top:10px}
 video{width:100%;border-radius:10px;margin-top:14px;background:#000}
-.pad{height:200px;border:2px dashed #475569;border-radius:12px;margin-top:14px;display:flex;align-items:center;justify-content:center;color:#64748b;touch-action:none;user-select:none}
+.pad{height:200px;border:2px dashed var(--mut);border-radius:12px;margin-top:14px;display:flex;align-items:center;justify-content:center;color:var(--mut);touch-action:none;user-select:none}
 .arrow{font-size:80px;text-align:center;transition:transform .1s;margin-top:10px}
-ul{padding-left:18px;line-height:1.6;font-size:14px;color:#cbd5e1}
+ul{padding-left:18px;line-height:1.6;font-size:14px}
 </style></head><body>
-<header><h1>📡 Sensori</h1><span class="ver">v1.0</span></header>
+<header><h1>📡 Sensori</h1><span><span class="ver">v1.1</span><button id="th">🎨</button></span></header>
 <nav id="nav"></nav>
 <div class="card" id="card"></div>
 <script>
 const $=s=>document.querySelector(s);
 const COL=['#38bdf8','#4ade80','#fbbf24'];
 const fmt=v=>typeof v==='number'?v.toFixed(2):v;
+const ACC=()=>getComputedStyle(document.documentElement).getPropertyValue('--acc').trim()||'#38bdf8';
+const ls=(k,v)=>{try{if(v===undefined)return localStorage.getItem(k);localStorage.setItem(k,v)}catch(e){return null}};
+
+/* temi */
+const TH=[
+{n:'Scuro',bg:'#0f172a',card:'#1e293b',txt:'#e2e8f0',mut:'#94a3b8',acc:'#38bdf8',chip:'#334155',on:'#0f172a'},
+{n:'Chiaro',bg:'#f1f5f9',card:'#ffffff',txt:'#0f172a',mut:'#64748b',acc:'#0284c7',chip:'#e2e8f0',on:'#ffffff'},
+{n:'Verde',bg:'#052e16',card:'#14532d',txt:'#dcfce7',mut:'#86efac',acc:'#4ade80',chip:'#166534',on:'#052e16'},
+{n:'Viola',bg:'#1e1b4b',card:'#312e81',txt:'#e0e7ff',mut:'#a5b4fc',acc:'#c084fc',chip:'#4338ca',on:'#1e1b4b'}];
+let ti=+ls('th')||0;
+function applyTheme(){const t=TH[ti%TH.length];for(const k of['bg','card','txt','mut','acc','chip','on'])document.documentElement.style.setProperty('--'+k,t[k]);document.querySelector('meta[name=theme-color]').content=t.bg;$('#th').textContent='🎨 '+t.n;ls('th',ti%TH.length)}
+$('#th').onclick=()=>{ti=(ti+1)%TH.length;applyTheme()};applyTheme();
+
+/* permessi e helper */
 async function permMotion(){if(typeof DeviceMotionEvent!=='undefined'&&DeviceMotionEvent.requestPermission){if(await DeviceMotionEvent.requestPermission()!=='granted')throw new Error('Permesso negato (Impostazioni › Safari › Movimento e orientamento)')}}
 async function permOri(){if(typeof DeviceOrientationEvent!=='undefined'&&DeviceOrientationEvent.requestPermission){if(await DeviceOrientationEvent.requestPermission()!=='granted')throw new Error('Permesso negato')}}
+const onMotion=f=>{addEventListener('devicemotion',f);return()=>removeEventListener('devicemotion',f)};
+async function micGo(cb){const ac=new(window.AudioContext||webkitAudioContext)();ac.resume();const st=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});const an=ac.createAnalyser();an.fftSize=1024;ac.createMediaStreamSource(st).connect(an);const td=new Float32Array(an.fftSize),fd=new Uint8Array(an.frequencyBinCount);let run=true;(function L(){if(!run)return;an.getFloatTimeDomainData(td);let s=0;for(const x of td)s+=x*x;const db=20*Math.log10(Math.sqrt(s/td.length)+1e-8);an.getByteFrequencyData(fd);cb(db,fd,ac.sampleRate/an.fftSize);requestAnimationFrame(L)})();return()=>{run=false;st.getTracks().forEach(t=>t.stop());ac.close()}}
+async function camGo(u,facing,cb){const st=await navigator.mediaDevices.getUserMedia({video:{facingMode:facing}});const v=document.createElement('video');v.setAttribute('playsinline','');v.muted=true;v.srcObject=st;await v.play();u.el.appendChild(v);const c=document.createElement('canvas');c.width=c.height=32;const x=c.getContext('2d',{willReadFrequently:true});const t=setInterval(()=>{x.drawImage(v,0,0,32,32);const d=x.getImageData(0,0,32,32).data;let s=0;for(let i=0;i<d.length;i+=4)s+=.299*d[i]+.587*d[i+1]+.114*d[i+2];cb(s/1024,v)},200);return()=>{clearInterval(t);st.getTracks().forEach(t=>t.stop());v.remove()}}
+const hav=(a,b)=>{const R=6371000,r=Math.PI/180,dl=(b.la-a.la)*r,dn=(b.lo-a.lo)*r;const h=Math.sin(dl/2)**2+Math.cos(a.la*r)*Math.cos(b.la*r)*Math.sin(dn/2)**2;return 2*R*Math.asin(Math.sqrt(h))};
+
+/* stati dei vari strumenti */
+let steps=0,lastStep=0,peak=0;
+let fm={min:999,max:-999,sum:0,n:0},cal=+ls('cal')||94;
+let tr={pts:[],dist:0,max:0,sum:0,n:0,last:null};
+let lx={min:1e9,max:0,k:1};
+let rec={rows:[]};
+let gir=0;
 
 const S=[
 {n:'Accelerometro',d:'Una minuscola massa di silicio su molle (MEMS): quando il telefono accelera, la massa si sposta e la variazione di capacità elettrica viene misurata. Da fermo vedi ≈9,8 m/s² sull\'asse rivolto verso il basso: è la gravità. Scuoti o inclina il telefono.',
- go:async u=>{await permMotion();const h=e=>{const a=e.accelerationIncludingGravity;if(!a)return;u.val({'X (m/s²)':a.x,'Y (m/s²)':a.y,'Z (m/s²)':a.z});u.plot([a.x,a.y,a.z],-20,20)};addEventListener('devicemotion',h);return()=>removeEventListener('devicemotion',h)}},
+ go:async u=>{await permMotion();return onMotion(e=>{const a=e.accelerationIncludingGravity;if(!a)return;u.val({'X (m/s²)':a.x,'Y (m/s²)':a.y,'Z (m/s²)':a.z});u.plot([a.x,a.y,a.z],-20,20)})}},
 {n:'Giroscopio',d:'Misura la velocità di rotazione attorno ai tre assi (gradi al secondo) sfruttando l\'effetto Coriolis su masse vibranti microscopiche. Da fermo vale ≈0. Ruota il telefono.',
- go:async u=>{await permMotion();const h=e=>{const r=e.rotationRate;if(!r)return;u.val({'Alpha (°/s)':r.alpha,'Beta (°/s)':r.beta,'Gamma (°/s)':r.gamma});u.plot([r.alpha,r.beta,r.gamma],-300,300)};addEventListener('devicemotion',h);return()=>removeEventListener('devicemotion',h)}},
+ go:async u=>{await permMotion();return onMotion(e=>{const r=e.rotationRate;if(!r)return;u.val({'Alpha (°/s)':r.alpha,'Beta (°/s)':r.beta,'Gamma (°/s)':r.gamma});u.plot([r.alpha,r.beta,r.gamma],-300,300)})}},
 {n:'Bussola',d:'Il magnetometro rileva il campo magnetico terrestre; combinato con accelerometro e giroscopio dà l\'orientamento. Heading 0° = Nord. Lontano da metalli e magneti, altrimenti si sballa.',
  go:async u=>{await permOri();const ar=document.createElement('div');ar.className='arrow';ar.textContent='⬆️';u.el.appendChild(ar);const h=e=>{const hd=e.webkitCompassHeading!=null?e.webkitCompassHeading:(e.alpha!=null?360-e.alpha:null);ar.style.transform='rotate('+(-(hd||0))+'deg)';u.val({'Direzione (°)':hd==null?'—':Math.round(hd),'Alpha':e.alpha,'Beta (inclinazione)':e.beta,'Gamma':e.gamma})};addEventListener('deviceorientation',h);return()=>{removeEventListener('deviceorientation',h);ar.remove()}}},
 {n:'GPS',d:'Calcola la posizione dai segnali dei satelliti (e da Wi-Fi/celle). La precisione è di pochi metri all\'aperto, peggiore al chiuso. Velocità e direzione compaiono solo in movimento.',
  go:async u=>{const id=navigator.geolocation.watchPosition(p=>{const c=p.coords;u.val({'Latitudine':c.latitude.toFixed(5),'Longitudine':c.longitude.toFixed(5),'Altitudine':c.altitude!=null?Math.round(c.altitude)+' m':'—','Precisione':'±'+Math.round(c.accuracy)+' m','Velocità':c.speed!=null?(c.speed*3.6).toFixed(1)+' km/h':'—','Direzione':c.heading!=null?Math.round(c.heading)+'°':'—'});u.plot([(c.speed||0)*3.6],0,60)},e=>u.err(e.message),{enableHighAccuracy:true});return()=>navigator.geolocation.clearWatch(id)}},
 {n:'Microfono',d:'Una membrana trasforma la pressione sonora in segnale elettrico. Qui vedi il livello (dBFS: 0 = massimo, più negativo = più silenzioso), la frequenza dominante e lo spettro (basse a sinistra, acute a destra). Prova a fischiare.',
- go:async u=>{const st=await navigator.mediaDevices.getUserMedia({audio:{echoCancellation:false,noiseSuppression:false,autoGainControl:false}});const ac=new(window.AudioContext||webkitAudioContext)();const an=ac.createAnalyser();an.fftSize=1024;ac.createMediaStreamSource(st).connect(an);const td=new Float32Array(an.fftSize),fd=new Uint8Array(an.frequencyBinCount);let run=true;(function L(){if(!run)return;an.getFloatTimeDomainData(td);let s=0;for(const x of td)s+=x*x;const db=20*Math.log10(Math.sqrt(s/td.length)+1e-8);an.getByteFrequencyData(fd);let pk=1;for(let i=1;i<fd.length;i++)if(fd[i]>fd[pk])pk=i;u.val({'Livello':db.toFixed(1)+' dBFS','Frequenza dominante':Math.round(pk*ac.sampleRate/an.fftSize)+' Hz'});u.bars(fd);requestAnimationFrame(L)})();return()=>{run=false;st.getTracks().forEach(t=>t.stop());ac.close()}}},
-{n:'Fotocamera',d:'Il sensore d\'immagine converte la luce in pixel. Qui calcolo la luminosità media dell\'inquadratura (0 = buio, 255 = bianco): è un modo per usare la camera come sensore di luce ambientale. Copri l\'obiettivo e guarda.',
- go:async u=>{const st=await navigator.mediaDevices.getUserMedia({video:{facingMode:'environment'}});const v=document.createElement('video');v.setAttribute('playsinline','');v.muted=true;v.srcObject=st;await v.play();u.el.appendChild(v);const c=document.createElement('canvas');c.width=c.height=32;const x=c.getContext('2d',{willReadFrequently:true});const t=setInterval(()=>{x.drawImage(v,0,0,32,32);const d=x.getImageData(0,0,32,32).data;let s=0;for(let i=0;i<d.length;i+=4)s+=.299*d[i]+.587*d[i+1]+.114*d[i+2];const l=s/1024;u.val({'Luminosità':l.toFixed(0)+' / 255','Risoluzione':v.videoWidth+'×'+v.videoHeight});u.plot([l],0,255)},200);return()=>{clearInterval(t);st.getTracks().forEach(t=>t.stop());v.remove()}}},
+ go:u=>micGo((db,fd,hz)=>{let pk=1;for(let i=1;i<fd.length;i++)if(fd[i]>fd[pk])pk=i;u.val({'Livello':db.toFixed(1)+' dBFS','Frequenza dominante':Math.round(pk*hz)+' Hz'});u.bars(fd)})},
+{n:'Fotocamera',d:'Il sensore d\'immagine converte la luce in pixel. Qui calcolo la luminosità media dell\'inquadratura (0 = buio, 255 = bianco). Copri l\'obiettivo e guarda.',
+ go:u=>camGo(u,'environment',(l,v)=>{u.val({'Luminosità':l.toFixed(0)+' / 255','Risoluzione':v.videoWidth+'×'+v.videoHeight});u.plot([l],0,255)})},
 {n:'Touch',d:'Lo schermo capacitivo rileva le dita dal cambiamento del campo elettrico. Tocca l\'area con più dita: vedi numero di tocchi, posizione, raggio e (se disponibile) forza.',
  go:async u=>{const p=document.createElement('div');p.className='pad';p.textContent='Tocca qui con più dita';u.el.appendChild(p);const h=e=>{e.preventDefault();const o={'Dita':e.touches.length};[...e.touches].forEach((t,i)=>{o['#'+(i+1)]=Math.round(t.clientX)+', '+Math.round(t.clientY)+' · r'+Math.round(t.radiusX||0)+' · f'+(t.force||0).toFixed(2)});u.val(o)};['touchstart','touchmove','touchend'].forEach(k=>p.addEventListener(k,h,{passive:false}));return()=>p.remove()}},
 {n:'Vibrazione',d:'Il motorino a massa eccentrica (Taptic Engine su iPhone) fa vibrare il telefono. Safari su iOS non permette di comandarlo dal web: funziona su Android/Chrome.',
  go:async u=>{if(!navigator.vibrate)throw new Error('Non supportata da Safari/iOS');navigator.vibrate([200,100,200,100,400]);u.val({'Stato':'vibrazione inviata'});return()=>navigator.vibrate(0)}},
-{n:'Non disponibili',d:'Sensori presenti nel telefono ma non accessibili da una pagina web su iPhone:',static:`<ul><li><b>Barometro</b>: pressione/altitudine (serve app nativa, CMAltimeter)</li><li><b>Magnetometro grezzo</b>: solo la bussola già elaborata</li><li><b>Luce ambientale</b> e <b>prossimità</b></li><li><b>Bluetooth</b> e <b>NFC</b></li><li><b>Batteria</b> e <b>rete</b> (info dettagliate)</li><li><b>Salute</b> (passi, battito)</li><li><b>Face ID</b> / LiDAR</li></ul>`}
+
+/* ---- strumenti ---- */
+{n:'🫧 Livella',d:'Livella a bolla digitale: usa l\'inclinazione calcolata da accelerometro e giroscopio. La bolla va verso il lato più alto; diventa verde quando il telefono è piatto (±1°). Appoggialo su una superficie per controllarla.',
+ go:async u=>{await permOri();const b=document.createElement('div');b.style.cssText='position:relative;width:240px;height:240px;margin:14px auto 0;border-radius:50%;border:3px solid var(--mut)';const d=document.createElement('div');d.style.cssText='position:absolute;left:50%;top:50%;width:44px;height:44px;margin:-22px;border-radius:50%;opacity:.9';b.appendChild(d);u.el.appendChild(b);const cl=v=>Math.max(-30,Math.min(30,v));const h=e=>{const g=e.gamma||0,be=e.beta||0;d.style.transform='translate('+(-cl(g)/30*98)+'px,'+(-cl(be)/30*98)+'px)';const ok=Math.abs(g)<1&&Math.abs(be)<1;d.style.background=ok?'#4ade80':'var(--acc)';u.val({'Sinistra/destra':g.toFixed(1)+'°','Avanti/indietro':be.toFixed(1)+'°','Stato':ok?'✅ Piatto':'inclinato'})};addEventListener('deviceorientation',h);return()=>{removeEventListener('deviceorientation',h);b.remove()}}},
+{n:'🔊 Fonometro',d:'Misura il rumore in dB con minimo, massimo e media. Il microfono non è calibrato: il valore è indicativo (≈ dB SPL). Per avvicinarti a un fonometro vero, confrontalo con uno e regola la calibrazione con i pulsanti.',
+ init:u=>{u.btn('Calibra −1',()=>{cal--;ls('cal',cal);u.val({'Calibrazione':'+'+cal})});u.btn('Calibra +1',()=>{cal++;ls('cal',cal);u.val({'Calibrazione':'+'+cal})});u.btn('Azzera min/max',()=>{fm={min:999,max:-999,sum:0,n:0}})},
+ go:u=>{fm={min:999,max:-999,sum:0,n:0};return micGo(db=>{const s=Math.max(0,db+cal);fm.min=Math.min(fm.min,s);fm.max=Math.max(fm.max,s);fm.sum+=s;fm.n++;u.val({'Livello':s.toFixed(1)+' dB','Minimo':fm.min.toFixed(1)+' dB','Massimo':fm.max.toFixed(1)+' dB','Media':(fm.sum/fm.n).toFixed(1)+' dB','Calibrazione':'+'+cal});u.plot([s],20,120)})}},
+{n:'👟 Passi/sismo',d:'Contapassi e sismografo: misura quanto l\'accelerazione totale si discosta dalla gravità (9,8). Ogni picco sopra soglia è un passo; il grafico mostra le vibrazioni. Tieni il telefono in tasca e cammina, oppure appoggialo su un tavolo e batti vicino.',
+ init:u=>u.btn('Azzera',()=>{steps=0;peak=0}),
+ go:async u=>{await permMotion();steps=0;peak=0;return onMotion(e=>{const a=e.accelerationIncludingGravity;if(!a)return;const m=Math.hypot(a.x,a.y,a.z)-9.81,t=Date.now();peak=Math.max(peak,Math.abs(m));if(m>1.8&&t-lastStep>300){steps++;lastStep=t}u.val({'Passi':steps,'Intensità (m/s²)':m,'Picco massimo':peak});u.plot([m],-12,12)})}},
+{n:'⏺ Registratore',d:'Registra 10 campioni al secondo di accelerometro, giroscopio, orientamento e GPS (se consentito). Premi Ferma e poi Salva/Condividi CSV (puoi scegliere "Salva su File") oppure Copia CSV. Massimo 10 minuti.',
+ init:u=>{u.btn('Salva/Condividi CSV',()=>{if(!rec.rows.length)return u.err('Nessun dato registrato');u.err('');const csv=recCSV();const b=new Blob([csv],{type:'text/csv'});const f=new File([b],'sensori.csv',{type:'text/csv'});if(navigator.canShare&&navigator.canShare({files:[f]}))navigator.share({files:[f]}).catch(()=>{});else{const a=document.createElement('a');a.href=URL.createObjectURL(b);a.download='sensori.csv';a.click()}});u.btn('Copia CSV',async()=>{if(!rec.rows.length)return u.err('Nessun dato registrato');try{await navigator.clipboard.writeText(recCSV());u.err('Copiato ✓')}catch(e){u.err('Copia non riuscita')}});if(rec.rows.length)u.val({'Campioni salvati':rec.rows.length})},
+ go:async u=>{await permMotion();await permOri().catch(()=>{});rec.rows=[];const t0=Date.now();let m={},o={},g={};const sm=onMotion(e=>{m={a:e.accelerationIncludingGravity||{},r:e.rotationRate||{}}});const fo=e=>{o={b:e.beta,g:e.gamma,h:e.webkitCompassHeading!=null?e.webkitCompassHeading:(e.alpha!=null?360-e.alpha:'')}};addEventListener('deviceorientation',fo);let gw=null;try{gw=navigator.geolocation.watchPosition(p=>{g={la:p.coords.latitude,lo:p.coords.longitude,s:p.coords.speed}},()=>{},{enableHighAccuracy:true})}catch(e){}const r=v=>v==null||v===''?'':(+v).toFixed(3);const t=setInterval(()=>{const a=m.a||{},rr=m.r||{};rec.rows.push([((Date.now()-t0)/1000).toFixed(1),r(a.x),r(a.y),r(a.z),r(rr.alpha),r(rr.beta),r(rr.gamma),r(o.b),r(o.g),r(o.h),g.la!=null?g.la.toFixed(6):'',g.lo!=null?g.lo.toFixed(6):'',r(g.s)]);u.val({'Campioni':rec.rows.length,'Durata':((Date.now()-t0)/1000).toFixed(0)+' s'});if(rec.rows.length>=6000)document.querySelector('.btn.stop')&&document.querySelector('.btn.stop').click()},100);return()=>{clearInterval(t);sm();removeEventListener('deviceorientation',fo);if(gw!=null)navigator.geolocation.clearWatch(gw)}}},
+{n:'🚗 Tachimetro',d:'Velocità GPS con massima, media, distanza percorsa e traccia del percorso disegnata. Funziona meglio all\'aperto; i valori compaiono dopo qualche secondo di movimento. Usalo da passeggero o a piedi/in bici.',
+ init:u=>u.btn('Azzera',()=>{tr={pts:[],dist:0,max:0,sum:0,n:0,last:null}}),
+ go:async u=>{tr={pts:[],dist:0,max:0,sum:0,n:0,last:null};const id=navigator.geolocation.watchPosition(p=>{const c=p.coords,pt={la:c.latitude,lo:c.longitude};const v=c.speed!=null&&c.speed>=0?c.speed*3.6:null;if(!tr.last){if(c.accuracy<50){tr.last=pt;tr.pts.push(pt)}}else if(c.accuracy<30){const d=hav(tr.last,pt);if(d>3){tr.dist+=d;tr.last=pt;tr.pts.push(pt);if(tr.pts.length>3000)tr.pts.shift()}}if(v!=null){tr.max=Math.max(tr.max,v);tr.sum+=v;tr.n++}u.val({'Velocità':v!=null?v.toFixed(1)+' km/h':'—','Massima':tr.max.toFixed(1)+' km/h','Media':(tr.n?tr.sum/tr.n:0).toFixed(1)+' km/h','Distanza':(tr.dist/1000).toFixed(2)+' km','Precisione':'±'+Math.round(c.accuracy)+' m'});u.trace(tr.pts)},e=>u.err(e.message),{enableHighAccuracy:true});return()=>navigator.geolocation.clearWatch(id)}},
+{n:'💡 Luxmetro',d:'Stima la luce ambiente con la fotocamera frontale. È molto approssimativa: la camera regola da sola l\'esposizione, quindi i lux sono indicativi (scala logaritmica). Usa i pulsanti per correggere il valore se hai un riferimento.',
+ init:u=>{u.btn('Valori ÷2',()=>{lx.k/=2});u.btn('Valori ×2',()=>{lx.k*=2});u.btn('Azzera',()=>{lx={min:1e9,max:0,k:1}})},
+ go:u=>{lx={min:1e9,max:0,k:1};return camGo(u,'user',l=>{const x=Math.round(Math.pow(10,l/255*4.5)*lx.k);lx.min=Math.min(lx.min,x);lx.max=Math.max(lx.max,x);const lab=x<10?'Buio':x<200?'Penombra':x<1000?'Interno':x<10000?'Molto luminoso':'Esterno/sole';u.val({'Luce stimata':'≈ '+x+' lux','Ambiente':lab,'Min':lx.min+' lux','Max':lx.max+' lux'});u.plot([Math.log10(x+1)],0,5)})}},
+{n:'🪂 Caduta libera',d:'In caduta libera l\'accelerometro misura ≈0 (il telefono "non sente" la gravità). Lancia il telefono di pochi cm in aria e riprendilo: misuro il tempo di volo e stimo l\'altezza (h = g·t²/8). ATTENZIONE: fallo sopra un letto o un divano e tienilo ben stretto, mai su pavimento duro.',
+ go:async u=>{await permMotion();let t0=null,last=null;return onMotion(e=>{const a=e.accelerationIncludingGravity;if(!a)return;const m=Math.hypot(a.x,a.y,a.z),t=performance.now();if(m<3){if(t0===null)t0=t}else if(t0!==null){const d=(t-t0)/1000;t0=null;if(d>.1)last={d,h:9.81*d*d/8}}u.val({'Accelerazione |a|':m.toFixed(2)+' m/s²','Stato':t0!==null?'⬇️ in volo':'in mano/appoggiato','Ultimo volo':last?last.d.toFixed(2)+' s':'—','Altezza stimata':last?(last.h*100).toFixed(0)+' cm':'—'});u.plot([m],0,25)})}},
+{n:'🌀 Giri',d:'Il giroscopio misura quanto velocemente ruoti. Tieni il telefono in mano e gira su te stesso, oppure appoggialo su un piatto girevole: integrando la velocità angolare conto i giri totali e i giri al minuto.',
+ init:u=>u.btn('Azzera',()=>{gir=0}),
+ go:async u=>{await permMotion();gir=0;let tl=null;return onMotion(e=>{const r=e.rotationRate;if(!r)return;const t=performance.now(),w=Math.hypot(r.alpha||0,r.beta||0,r.gamma||0);if(tl!==null)gir+=w*(t-tl)/1000;tl=t;u.val({'Velocità':w.toFixed(0)+' °/s','Giri al minuto':(w/6).toFixed(1),'Giri totali':(gir/360).toFixed(2)});u.plot([w],0,720)})}},
+{n:'Non disponibili',d:'Sensori presenti nel telefono ma non accessibili da una pagina web su iPhone:',static:'<ul><li><b>Barometro</b>: pressione/altitudine (serve app nativa, CMAltimeter)</li><li><b>Magnetometro grezzo</b>: solo la bussola già elaborata</li><li><b>Luce ambientale</b> e <b>prossimità</b> (qui sostituiti dalla fotocamera)</li><li><b>Bluetooth</b> e <b>NFC</b></li><li><b>Batteria</b> e <b>rete</b> (info dettagliate)</li><li><b>Salute</b> (battito, passi di sistema)</li><li><b>Face ID</b> / LiDAR</li></ul>'}
 ];
 
-let cur=-1,stopFn=null,buf=[];
+function recCSV(){return['t_s,acc_x,acc_y,acc_z,giro_alpha,giro_beta,giro_gamma,incl_beta,incl_gamma,bussola,lat,lon,velocita_ms'].concat(rec.rows.map(r=>r.join(','))).join('\n')}
+
+let stopFn=null,buf=[];
 const nav=$('#nav');
 S.forEach((s,i)=>{const b=document.createElement('button');b.textContent=s.n;b.onclick=()=>sel(i);nav.appendChild(b)});
 
 function sel(i){
  if(stopFn){try{stopFn()}catch(e){}stopFn=null}
- cur=i;buf=[];[...nav.children].forEach((b,j)=>b.classList.toggle('on',j===i));
+ buf=[];[...nav.children].forEach((b,j)=>b.classList.toggle('on',j===i));
  const s=S[i],c=$('#card');
  c.innerHTML='<p class="desc"></p>';c.firstChild.textContent=s.d;
  if(s.static){c.insertAdjacentHTML('beforeend',s.static);return}
@@ -76,9 +131,13 @@ function sel(i){
  const u={el,
   val(o){vals.innerHTML=Object.entries(o).map(([k,v])=>`<span>${k}</span><span>${fmt(v)}</span>`).join('')},
   err(m){er.textContent=m},
-  plot(a,mn,mx){cv.style.display='block';cv.width=cv.clientWidth*2;cv.height=280;a.forEach((v,k)=>{(buf[k]=buf[k]||[]).push(v);if(buf[k].length>150)buf[k].shift()});const x=cv.getContext('2d');x.clearRect(0,0,cv.width,cv.height);x.strokeStyle='#334155';x.lineWidth=2;x.beginPath();const z=cv.height*(mx/(mx-mn));x.moveTo(0,z);x.lineTo(cv.width,z);x.stroke();buf.forEach((b,k)=>{x.strokeStyle=COL[k];x.lineWidth=3;x.beginPath();b.forEach((v,j)=>{const px=j/150*cv.width,py=cv.height*(1-(Math.max(mn,Math.min(mx,v))-mn)/(mx-mn));j?x.lineTo(px,py):x.moveTo(px,py)});x.stroke()})},
-  bars(f){cv.style.display='block';cv.width=cv.clientWidth*2;cv.height=280;const x=cv.getContext('2d');x.clearRect(0,0,cv.width,cv.height);const n=96,w=cv.width/n;x.fillStyle='#38bdf8';for(let i=0;i<n;i++){const h=f[i]/255*cv.height;x.fillRect(i*w,cv.height-h,w-2,h)}}
+  btn(t,f){const b=document.createElement('button');b.className='btn2';b.textContent=t;b.onclick=f;el.appendChild(b)},
+  cv(){cv.style.display='block';cv.width=cv.clientWidth*2;cv.height=280;return cv.getContext('2d')},
+  plot(a,mn,mx){const x=u.cv();a.forEach((v,k)=>{(buf[k]=buf[k]||[]).push(v);if(buf[k].length>150)buf[k].shift()});x.strokeStyle='rgba(148,163,184,.4)';x.lineWidth=2;x.beginPath();const z=cv.height*(mx/(mx-mn));x.moveTo(0,z);x.lineTo(cv.width,z);x.stroke();buf.forEach((b,k)=>{x.strokeStyle=COL[k];x.lineWidth=3;x.beginPath();b.forEach((v,j)=>{const px=j/150*cv.width,py=cv.height*(1-(Math.max(mn,Math.min(mx,v))-mn)/(mx-mn));j?x.lineTo(px,py):x.moveTo(px,py)});x.stroke()})},
+  bars(f){const x=u.cv();const n=96,w=cv.width/n;x.fillStyle=ACC();for(let i=0;i<n;i++){const h=f[i]/255*cv.height;x.fillRect(i*w,cv.height-h,w-2,h)}},
+  trace(pts){if(pts.length<2)return;const x=u.cv();const k=Math.cos(pts[0].la*Math.PI/180);let a=1e9,b=-1e9,c2=1e9,d=-1e9;pts.forEach(p=>{const X=p.lo*k,Y=-p.la;a=Math.min(a,X);b=Math.max(b,X);c2=Math.min(c2,Y);d=Math.max(d,Y)});const sp=Math.max(b-a,d-c2,2e-5),P=24,sc=(Math.min(cv.width,cv.height)-2*P)/sp;x.strokeStyle=ACC();x.lineWidth=4;x.lineJoin='round';x.beginPath();pts.forEach((p,j)=>{const px=P+(p.lo*k-a)*sc,py=P+(-p.la-c2)*sc;j?x.lineTo(px,py):x.moveTo(px,py)});x.stroke();const l=pts[pts.length-1];x.fillStyle='#f87171';x.beginPath();x.arc(P+(l.lo*k-a)*sc,P+(-l.la-c2)*sc,8,0,7);x.fill()}
  };
+ if(s.init)s.init(u);
  let on=false;
  btn.onclick=async()=>{
   if(on){if(stopFn){try{stopFn()}catch(e){}stopFn=null}on=false;btn.textContent='Avvia';btn.classList.remove('stop');return}
